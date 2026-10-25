@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GitHubRepoCheker.ClassJsonSettings
+namespace GitHubRepoCheker
 {
-    internal class DtoGithub
+    internal class DtoGitHub
     {
     }
 }

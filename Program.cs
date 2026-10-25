@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Net;
+using GitHubRepoCheker.ClassJsonSettnigs;
 using GitHubRepoCheker.GithubRequest;
 class Program
 {
@@ -20,14 +21,7 @@ class Program
         using var cts =
             CancellationTokenSource.CreateLinkedTokenSource(AutoMod.Token, ManuallyMod.Token); // combine two cancellation into one
 
-        List<string> repos = new() // collection with all urls
-    {
-        "krustu/intermediate-CSpractice",
-        "krustu/CSharp-GitPracrice",
-        "krustu/RealEstateAggregator",
-        "krustu/RPG-manager",
-        "krustu/Zabka-Catalog-LINQ"
-    };
+
 
         _ = Task.Run(() =>
         {
@@ -35,7 +29,7 @@ class Program
             Console.ReadKey(true);
             ManuallyMod.Cancel(); // controle manual cancellation with press latter to stop any time
         });
-
+        var repos = RepoData.repos; // our sources
         try
         {
             for (int i = 0; i < repos.Count; i++) // Our main cycle to repeat as much as we have urls(repo)
