@@ -1,9 +1,11 @@
-﻿using System;
+﻿using GitHubRepoCheker.ClassJsonSettnigs;
+using GitHubRepoCheker.GithubRequest;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Net;
-using GitHubRepoCheker.ClassJsonSettnigs;
-using GitHubRepoCheker.GithubRequest;
+using System.Text.Json;
 class Program
 {
     static async Task Main()
@@ -29,7 +31,19 @@ class Program
             Console.ReadKey(true);
             ManuallyMod.Cancel(); // controle manual cancellation with press latter to stop any time
         });
-        var repos = RepoData.repos; // our sources
+
+
+        var config = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", optional: false)
+            .Build();
+
+
+        GitHubSettings settings = config.GetSection("GitHubSettings")
+            .Get<GitHubSettings>() ?? throw new InvalidOperationException("Section 'GitHubSettings' is missing");
+
+      //  Console.WriteLine(JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
+        var repos = settings.Repos;
+
         try
         {
             for (int i = 0; i < repos.Count; i++) // Our main cycle to repeat as much as we have urls(repo)
