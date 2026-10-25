@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GitHubRepoCheker.ClassJsonSettnigs;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
@@ -8,9 +9,11 @@ namespace GitHubRepoCheker.GithubRequest
     public class GitHubClient
     {
         private readonly HttpClient _httpClient; // craete one main client for all and pass it in others parts
-        public GitHubClient(HttpClient a)
+        private readonly GitHubSettings _settings;
+        public GitHubClient(HttpClient a , GitHubSettings b)
         {
             _httpClient = a;
+            _settings = b;
         }
         public async Task<string> GetRepositoryAsync(string owner, string repo, CancellationToken ct)
         {
@@ -31,7 +34,7 @@ namespace GitHubRepoCheker.GithubRequest
         }
         private async Task<HttpResponseMessage> GetWithRetryAsync(string url, CancellationToken ct)
         {
-            int Maxattempts = 4; // out attempts 
+            int Maxattempts = _settings.MaxAttempts; // out attempts 
             for (int attempts = 1; ; attempts++)
             {
                 try
@@ -61,7 +64,7 @@ namespace GitHubRepoCheker.GithubRequest
                 {
                     throw new HttpRequestException("Request timed out after all attempts");
                 }
-                TimeSpan delay = TimeSpan.FromSeconds(Math.Pow(2, attempts - 1));
+                TimeSpan delay = TimeSpan.FromSeconds(Math.Pow(_settings.BackoffBase, attempts - 1));
                 await Task.Delay(delay, ct);
             }
         }

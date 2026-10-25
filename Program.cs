@@ -10,15 +10,24 @@ class Program
 {
     static async Task Main()
     {
-        using HttpClient Client = new(); //created Client 
-        Client.Timeout = TimeSpan.FromSeconds(10); // auto cancellation for client, if respondse took more than 10second canellation will send stop
-        Client.DefaultRequestHeaders.Add("User-Agent", "KrustuSHN / 1.0"); //custom headers 
+        var config = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", optional: false)
+            .Build();
 
-        var github = new GitHubClient(Client); // pass the object inside class GitHubClient 
+
+        GitHubSettings settings = config.GetSection("GitHubSettings")
+            .Get<GitHubSettings>() ?? throw new InvalidOperationException("Section 'GitHubSettings' is missing");
+
+
+        using HttpClient Client = new(); //created Client 
+        Client.Timeout = TimeSpan.FromSeconds(settings.TimeOutSeconds); // auto cancellation for client, if respondse took more than 10second canellation will send stop
+        Client.DefaultRequestHeaders.Add("User-Agent",$"{settings.UserAgent.Name} / {settings.UserAgent.Version}"); //custom headers 
+
+        var github = new GitHubClient(Client , settings); // pass the object inside class GitHubClient 
         // created object github to work and use github methods in Main.
 
         using CancellationTokenSource AutoMod = // auto cancelltion 
-            new CancellationTokenSource(TimeSpan.FromSeconds(60));
+            new CancellationTokenSource(TimeSpan.FromSeconds(settings.TotalTimeoutSeconds));
         using CancellationTokenSource ManuallyMod = new CancellationTokenSource(); //cancellation manually
         using var cts =
             CancellationTokenSource.CreateLinkedTokenSource(AutoMod.Token, ManuallyMod.Token); // combine two cancellation into one
@@ -33,13 +42,7 @@ class Program
         });
 
 
-        var config = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", optional: false)
-            .Build();
-
-
-        GitHubSettings settings = config.GetSection("GitHubSettings")
-            .Get<GitHubSettings>() ?? throw new InvalidOperationException("Section 'GitHubSettings' is missing");
+         
 
       //  Console.WriteLine(JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
         var repos = settings.Repos;
@@ -63,7 +66,7 @@ class Program
                 }
 
                 if (i < repos.Count - 1)
-                    await Task.Delay(1000, cts.Token); // our delay 
+                    await Task.Delay(settings.DelayBetweenRequestsMs, cts.Token); // our delay 
             }
         }
         catch (OperationCanceledException) //catch to identify which cancellation will send notification about stopping
