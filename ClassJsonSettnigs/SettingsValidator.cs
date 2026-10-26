@@ -15,8 +15,15 @@ namespace GitHubRepoCheker.ClassJsonSettnigs
         }
         //CheckCompatibility
         //GitHubSettings
-       public GitHubSettings ValidCompatibility(GitHubSettings settings)
-        {
+       public GitHubSettings? ValidCompatibility(GitHubSettings settings)
+       {
+            bool CanWorkpath = HandleValidation();
+            if (CanWorkpath)
+                return settings;
+            else
+            {
+                return null;
+            }
 
         }
         private bool HandleValidation()
@@ -30,7 +37,19 @@ namespace GitHubRepoCheker.ClassJsonSettnigs
                 Console.WriteLine("Several warning were detected in the Json; do you want to continue?");
                 Console.WriteLine("Yes - 2 ; No - 1");
                 bool answer = InputChecker();
-                return answer;
+                if(answer == true)
+                {
+                    _result.ShowWarnings();
+                    Console.ReadKey();
+                    return true;
+                }
+                else
+                {
+                    _result.ShowErrors();
+                    Console.ReadKey();
+                    return false;
+                }
+
             }
         }
         private bool InputChecker()
@@ -56,17 +75,30 @@ namespace GitHubRepoCheker.ClassJsonSettnigs
                 return false;
             }
         }
-        /*
-          ValidationHandler
- │      ├── Выводит ошибки и предупреждения
- │      ├── При ошибках запрещает запуск
- │      └── При предупреждениях предлагает продолжить
-        */
+  
     }
     public class ValiationResults
     {
         public List<string> Errors { get; } = new();
         public List<string> Warnings { get; } = new();
+        public void ShowWarnings()
+        {
+            int index = 0;
+            foreach(var a in Warnings)
+            {
+                Console.WriteLine($"{index} - WARNING: {a}");
+                index++;
+            }
+        }
+        public void ShowErrors()
+        {
+            int index = 0;
+            foreach (var a in Errors)
+            {
+                Console.WriteLine($"{index} - ERROR: {a}");
+                index++;
+            }
+        }
     }
     public static class SettingsValidator
     {
@@ -141,18 +173,3 @@ namespace GitHubRepoCheker.ClassJsonSettnigs
         } 
     }
 }
-// using approximetley
-/*
- ValidationResult result =
-    SettingsValidator.CheckCompatibility(settings);
-
-foreach (string error in result.Errors)
-{
-    Console.WriteLine($"ERROR: {error}");
-}
-
-foreach (string warning in result.Warnings)
-{
-    Console.WriteLine($"WARNING: {warning}");
-}
- */
