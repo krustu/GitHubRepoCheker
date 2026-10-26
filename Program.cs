@@ -16,10 +16,12 @@ class Program
             .Build();
 
 
-        GitHubSettings settings = config.GetSection("GitHubSettings")
+        GitHubSettings Presettings = config.GetSection("GitHubSettings")
             .Get<GitHubSettings>() ?? throw new InvalidOperationException("Section 'GitHubSettings' is missing");
 
-        
+        ValidationResults result = SettingsValidator.SettingsMistakes(Presettings);
+        ValidationHandler handler = new(result);
+        var settings = handler.ValidCompatibility(Presettings);
 
 
         using HttpClient Client = new(); //created Client 
