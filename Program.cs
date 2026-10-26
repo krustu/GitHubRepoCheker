@@ -19,6 +19,8 @@ class Program
         GitHubSettings settings = config.GetSection("GitHubSettings")
             .Get<GitHubSettings>() ?? throw new InvalidOperationException("Section 'GitHubSettings' is missing");
 
+        
+
 
         using HttpClient Client = new(); //created Client 
         Client.Timeout = TimeSpan.FromSeconds(settings.TimeOutSeconds); // auto cancellation for client, if respondse took more than 10second canellation will send stop

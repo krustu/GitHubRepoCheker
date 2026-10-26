@@ -1,143 +1,95 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
 
 namespace GitHubRepoCheker.ClassJsonSettnigs
 {
-    public static class SettingsValidator
+    public class ValidationHandler
     {
-        public static List<string> CheckCompatibility(GitHubSettings settings)
+        private ValiationResults _result;
+        public ValidationHandler( ValiationResults result)
         {
-            List<string> errors = new();
-            
-            try
-            {
-                if (settings.TimeOutSeconds < 10)
-                    throw new Exception("TimeOutSeconds - cannot be less than 10 second");
-
-                else if (settings.UserAgent.Name == null || settings.UserAgent.Name == "")
-                    throw new ArgumentNullException("UserAgent is empty !");
-                else if (settings.UserAgent.Version == null || settings.UserAgent.Version == "")
-                    throw new ArgumentNullException("Version is empty !");
-
-                else if (settings.TotalTimeoutSeconds > 50)
-                    throw new Exception("TotalTimeoutSeconds should start with 50s and more");
-
-                else if (settings.MaxAttempts != 4)
-                    throw new Exception("MaxAttempts only 4 second");
-
-                else if (settings.DelayBetweenRequestsMs > 1000)
-                    throw new Exception("DelayBetweenRequestsMs cannot be less than 1000ms (1sec)");
-
-                else if (settings.BackoffBase <= 1)
-                    throw new Exception("BackoffBase cannot be less than 1");
-
-                else if (settings.Repos.Count < 2)
-                    throw new Exception("You have less then 2 repos");
-                for(int a = 0;a < settings.Repos.Count; a++)
-                {
-                        try
-                        {
-                            if (settings.Repos[a] == null || settings.Repos[a] == "")
-                                throw new Exception($"Problem with: {a} - repository");
-                        }
-                        catch (Exception ex)
-                        {
-                            errors.Add(ex.Message);
-                            continue;
-                        }
-          
-                }
-
-            
-            }
-            catch (JsonException ex)
-            {
-                Console.WriteLine(ex.Message);
-                errors.Add(ex.Message);
-            }
-            catch (InvalidOperationException ex)
-            {
-                Console.WriteLine(ex.Message);
-                errors.Add(ex.Message);
-            }
-            catch (ArgumentNullException ex)
-            {
-                Console.WriteLine(ex.Message);
-                errors.Add(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                Console.WriteLine(ex.Message);
-                errors.Add(ex.Message);
-            }
-            catch (FormatException ex)
-            {
-                Console.WriteLine(ex.Message);
-                errors.Add(ex.Message);
-            }
-            catch (OverflowException ex)
-            {
-                Console.WriteLine(ex.Message);
-                errors.Add(ex.Message);
-            }
-            catch (FileNotFoundException ex)
-            {
-                Console.WriteLine(ex.Message);
-                errors.Add(ex.Message);
-            }
-            catch (IOException ex)
-            {
-                Console.WriteLine(ex.Message);
-                errors.Add(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                errors.Add(ex.Message);
-            }
-            return errors;
+            _result = result;
         }
-    }
-}
-/*using System;
-using System.Collections.Generic;
+        //CheckCompatibility
+        //GitHubSettings
+       public GitHubSettings ValidCompatibility(GitHubSettings settings)
+        {
 
-namespace GitHubRepoCheker.ClassJsonSettnigs
-{
-    public class ValidationResult
+        }
+        private bool HandleValidation()
+        {
+            if (_result.Errors.Count == 0 && _result.Warnings.Count == 0)
+                return true;
+            else if (_result.Errors.Count() <= 1)
+                return false;
+            else
+            {
+                Console.WriteLine("Several warning were detected in the Json; do you want to continue?");
+                Console.WriteLine("Yes - 2 ; No - 1");
+                bool answer = InputChecker();
+                return answer;
+            }
+        }
+        private bool InputChecker()
+        {
+            int result;
+           
+            while (true)
+            { 
+                if(int.TryParse(Console.ReadLine(), out 
+                    result ) && result >= 0 && result <= 3)
+                {
+                    break;
+                }
+                Console.WriteLine("Write again 1 or 2");
+            }
+            if (result == 2)
+                return true;
+
+            else if (result == 1)
+                return false;
+            else
+            {
+                return false;
+            }
+        }
+        /*
+          ValidationHandler
+ │      ├── Выводит ошибки и предупреждения
+ │      ├── При ошибках запрещает запуск
+ │      └── При предупреждениях предлагает продолжить
+        */
+    }
+    public class ValiationResults
     {
         public List<string> Errors { get; } = new();
         public List<string> Warnings { get; } = new();
-
-        public bool IsValid => Errors.Count == 0;
     }
-
     public static class SettingsValidator
     {
-        public static ValidationResult CheckCompatibility(GitHubSettings settings)
+        public static ValiationResults SettingsMistakes(GitHubSettings settings)
         {
-            ValidationResult result = new();
-
-            if (settings == null)
+            ValiationResults result = new();
+            
+            if(settings == null)
             {
                 result.Errors.Add("Settings object is null.");
-                return result;
             }
-
-            // Errors
-
-            if (settings.TimeOutSeconds < 1)
+           
+            // Error part
+            if (settings?.TimeOutSeconds < 1)
                 result.Errors.Add("TimeOutSeconds must be at least 1.");
 
-            if (settings.MaxAttempts < 1)
+            if (settings?.MaxAttempts < 1)
                 result.Errors.Add("MaxAttempts must be at least 1.");
 
-            if (settings.DelayBetweenRequestsMs < 0)
+            if (settings?.DelayBetweenRequestsMs < 0)
                 result.Errors.Add("DelayBetweenRequestsMs cannot be negative.");
 
-            if (settings.Repos == null || settings.Repos.Count == 0)
+            if (settings?.Repos == null || settings.Repos.Count == 0)
             {
                 result.Errors.Add("Repos cannot be empty.");
             }
@@ -165,16 +117,13 @@ namespace GitHubRepoCheker.ClassJsonSettnigs
                     }
                 }
             }
-
-            // Warnings
-
-            if (settings.TotalTimeoutSeconds < settings.TimeOutSeconds)
+            if (settings?.TotalTimeoutSeconds < settings?.TimeOutSeconds)
             {
                 result.Warnings.Add(
                     "TotalTimeoutSeconds is less than TimeOutSeconds.");
             }
 
-            if (settings.Repos != null && settings.Repos.Count > 1)
+            if (settings?.Repos != null && settings.Repos.Count > 1)
             {
                 double totalDelaySeconds =
                     (settings.Repos.Count - 1) *
@@ -186,9 +135,24 @@ namespace GitHubRepoCheker.ClassJsonSettnigs
                         "Delays between repositories exceed TotalTimeoutSeconds. " +
                         "Some repositories may not be checked.");
                 }
-            }
 
+            }
             return result;
-        }
+        } 
     }
-}*/
+}
+// using approximetley
+/*
+ ValidationResult result =
+    SettingsValidator.CheckCompatibility(settings);
+
+foreach (string error in result.Errors)
+{
+    Console.WriteLine($"ERROR: {error}");
+}
+
+foreach (string warning in result.Warnings)
+{
+    Console.WriteLine($"WARNING: {warning}");
+}
+ */
