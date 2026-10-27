@@ -12,7 +12,8 @@ class Program
 {
     static async Task Main()
     {
-        Environment.SetEnvironmentVariable("GitHubSettings__MaxAttempts", "2");
+        //Priority
+        //Environment.SetEnvironmentVariable("GitHubSettings__MaxAttempts", "2");
         var config = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", optional: false)
             .AddUserSecrets<Program>(optional: true)
@@ -75,7 +76,7 @@ class Program
 
 
          
-
+      // Can show Token BE CAREFULY
       //  Console.WriteLine(JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
         var repos = settings.Repos;
 
