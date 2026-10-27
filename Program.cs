@@ -11,25 +11,37 @@ class Program
 {
     static async Task Main()
     {
+        Environment.SetEnvironmentVariable("GitHubSettings__MaxAttempts", "0");
         var config = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", optional: false)
+            .AddEnvironmentVariables()
             .Build();
-
+       
 
         GitHubSettings Presettings = config.GetSection("GitHubSettings")
             .Get<GitHubSettings>() ?? throw new InvalidOperationException("Section 'GitHubSettings' is missing");
 
+
+
+        // Validation System before running program
+        
+
         ValidationResults result = SettingsValidator.SettingsMistakes(Presettings);
         ValidationHandler handler = new(result);
         var settings = handler.ValidCompatibility(Presettings);
+        if (settings == null) return;
 
+        Console.WriteLine(settings.MaxAttempts);
+        Console.ReadKey();
 
-        using HttpClient Client = new(); //created Client 
+        //created Client 
+        using HttpClient Client = new(); 
         Client.Timeout = TimeSpan.FromSeconds(settings.TimeOutSeconds); // auto cancellation for client, if respondse took more than 10second canellation will send stop
         Client.DefaultRequestHeaders.Add("User-Agent",$"{settings.UserAgent.Name} / {settings.UserAgent.Version}"); //custom headers 
 
         var github = new GitHubClient(Client , settings); // pass the object inside class GitHubClient 
         // created object github to work and use github methods in Main.
+
 
         using CancellationTokenSource AutoMod = // auto cancelltion 
             new CancellationTokenSource(TimeSpan.FromSeconds(settings.TotalTimeoutSeconds));

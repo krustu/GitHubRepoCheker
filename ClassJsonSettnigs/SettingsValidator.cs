@@ -130,8 +130,7 @@ namespace GitHubRepoCheker.ClassJsonSettnigs
             if (settings.TimeOutSeconds < 1)
                 result.Errors.Add("TimeOutSeconds must be at least 1.");
 
-            if (settings.MaxAttempts < 1)
-                result.Errors.Add("MaxAttempts must be at least 1.");
+         
 
             if (settings.DelayBetweenRequestsMs < 0)
                 result.Errors.Add("DelayBetweenRequestsMs cannot be negative.");
@@ -165,6 +164,8 @@ namespace GitHubRepoCheker.ClassJsonSettnigs
             }
 
             // Warnings
+              if (settings.MaxAttempts < 1)
+                  result.Warnings.Add("MaxAttempts must be at least 1.");
 
             if (settings.TotalTimeoutSeconds < settings.TimeOutSeconds)
             {
