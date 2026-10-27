@@ -6,33 +6,37 @@ using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Net;
 using System.Text.Json;
+using System.Net.Http.Headers;
 
 class Program
 {
     static async Task Main()
     {
-        Environment.SetEnvironmentVariable("GitHubSettings__MaxAttempts", "0");
+        Environment.SetEnvironmentVariable("GitHubSettings__MaxAttempts", "2");
         var config = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", optional: false)
+            .AddUserSecrets<Program>(optional: true)
             .AddEnvironmentVariables()
             .Build();
-       
 
-        GitHubSettings Presettings = config.GetSection("GitHubSettings")
-            .Get<GitHubSettings>() ?? throw new InvalidOperationException("Section 'GitHubSettings' is missing");
+        
+        GitHubSettings Presettings = config
+            .GetSection("GitHubSettings")
+            .Get<GitHubSettings>() 
+            ?? throw new InvalidOperationException("Section 'GitHubSettings' is missing");
 
 
+     
 
         // Validation System before running program
-        
+
 
         ValidationResults result = SettingsValidator.SettingsMistakes(Presettings);
         ValidationHandler handler = new(result);
         var settings = handler.ValidCompatibility(Presettings);
         if (settings == null) return;
 
-        Console.WriteLine(settings.MaxAttempts);
-        Console.ReadKey();
+        
 
         //created Client 
         using HttpClient Client = new(); 
@@ -50,7 +54,18 @@ class Program
             CancellationTokenSource.CreateLinkedTokenSource(AutoMod.Token, ManuallyMod.Token); // combine two cancellation into one
 
 
-
+        //Check token
+        if (!string.IsNullOrWhiteSpace(settings.Token))
+        {
+            Client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", settings.Token);
+            Console.WriteLine("token found");
+        }
+        else
+        {
+            Console.WriteLine("No token found");
+        }
+        Console.ReadKey();
         _ = Task.Run(() =>
         {
             Console.WriteLine("press any key to Cancel immediately");

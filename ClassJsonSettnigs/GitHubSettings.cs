@@ -14,6 +14,7 @@ namespace GitHubRepoCheker.ClassJsonSettnigs
         public int MaxAttempts { get; set; }
         public int DelayBetweenRequestsMs { get; set; }
         public double BackoffBase { get; set; }
+        public string? Token { get; set; } // new parameter for secret token
     }
     public class UserAgentSettings
     {
